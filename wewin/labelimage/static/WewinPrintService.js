@@ -1,7 +1,7 @@
 /**
- * Wewin PC 打印服务
+ * WEWIN 通用式插件 API v1.0.5
+ * By WEWIN资管组
  */
-
 var WewinPrintService = function () {
 
     function WewinPrintService() {
@@ -37,8 +37,9 @@ var WewinPrintService = function () {
 
     /**
      * 测量字符串长度
-     * @param {String} str 
-     * @param {Number} size 
+     * @param {String} str 需要测量的字符串(单字符或字符串)
+     * @param {Number} size 字体大小
+     * @returns {Number} 返回字符串像素长度
      */
     WewinPrintService.prototype.getLen = function (str, size) {
         var webType = this.isIE();
@@ -85,8 +86,8 @@ var WewinPrintService = function () {
     }
 
     /**
-     * json入口，获取用户传入的json数据
-     * @param {String} json 
+     * 打印数据入口，获取用户传入的打印数据
+     * @param {String} data 打印数据
      */
     WewinPrintService.prototype.LabelPrint = function (data) {
         this.data = data;
@@ -102,6 +103,8 @@ var WewinPrintService = function () {
 
     /**
      * 设置预览相关信息
+     * @param {String} title 预览页面标题
+     * @param {String} version 版本号
      */
     WewinPrintService.prototype.SetViewInfo = function (obj) {
         //预览页面标题(修改为：重庆品胜 - 新疆移动 - 打印预览)
@@ -113,6 +116,7 @@ var WewinPrintService = function () {
 
     /**
      * 设置打印相关信息
+     * @param {String} printers 支持的打印机型号
      */
     WewinPrintService.prototype.SetPrintInfo = function (printers) {
         //支持的打印机型号
@@ -362,18 +366,8 @@ var WewinPrintService = function () {
         alert(text);
     }
 
-    WewinPrintService.prototype.parseJsonElement = function (ele) {
-        if (typeof (ele) == "string") {
-            var arr = [];
-            arr.push(ele);
-            return arr;
-        } else if (typeof (ele) == "object") {
-            return ele;
-        }
-    }
-
     /**
-     * 打印
+     * 设置选中的打印机
      */
     WewinPrintService.prototype.GetPrinter = function () {
         this.printername = document.getElementById("printername").value;
@@ -385,6 +379,9 @@ var WewinPrintService = function () {
 
     /**
      * 无预览打印
+     * @param {String} 打印数据
+     * @param {String} 打印机名称
+     * @param {Function} 回调函数
      */
     WewinPrintService.prototype.SetPrinter = function (tagData, printer, func) {
         this.data = tagData;
@@ -487,6 +484,19 @@ var WewinPrintService = function () {
      * @param {Function} doLabelPrintFunc 
      */
     WewinPrintService.prototype.DoLabelPrint = function (doLabelPrintFunc) {
+        var supportPrinter = document.getElementById("printtype").innerHTML;
+        var supportPrinterArr = supportPrinter.split(" ");
+        var temp = true;
+        for (var i = 0; i < supportPrinterArr.length; i++) {
+            if (this.printername.indexOf(supportPrinterArr[i]) != -1) {
+                temp = false;
+                break;
+            }
+        }
+        if (temp) {
+            alert("不支持该打印机型号");
+            return;
+        }
         doLabelPrintFunc(this.data);
     }
 
@@ -541,7 +551,8 @@ var WewinPrintService = function () {
 
     /**
      * 编码转换
-     * @param {String} str 
+     * @param {String} str 需要转换的字符串
+     * @returns {String} 转换后的字符串
      */
     WewinPrintService.prototype.utf16to8 = function (str) {
         var out, i, len, c;
@@ -565,7 +576,8 @@ var WewinPrintService = function () {
 
     /**
      * 打印方法
-     * @param {Object} rawData 
+     * @param {Object} rawData 打印数据
+     * @returns {String} 对象转字符串的打印数据
      */
     WewinPrintService.prototype.Print = function (rawData) {
         if (this.printername != -1) {
@@ -611,7 +623,8 @@ var WewinPrintService = function () {
 
     /**
      * 解析原始数据为打印数据
-     * @param {Object} rawData 
+     * @param {Object} rawData 原始数据对象
+     * @returns {String} 转为字符串的数据
      */
     WewinPrintService.prototype.resolveData = function (rawData) {
         var sendData = "";
@@ -629,11 +642,11 @@ var WewinPrintService = function () {
 
     /**
      * Ajax请求封装
-     * @param {String} type 
-     * @param {String} url 
-     * @param {String} data 
-     * @param {Function} success 
-     * @param {Function} failed 
+     * @param {String} type 请求类型
+     * @param {String} url 请求地址
+     * @param {String} data 请求参数
+     * @param {Function} success 成功回调函数
+     * @param {Function} failed 失败回调函数
      */
     WewinPrintService.prototype.Ajax = function (type, url, data, success, failed) {
         // 创建ajax对象
@@ -692,6 +705,12 @@ var WewinPrintService = function () {
         }
     }
 
+    /**
+     * 拼接数组
+     * @param {Array} arr1 数组1
+     * @param {Array} arr2 数组2
+     * @returns {Array} 拼接数组1和数组2
+     */
     WewinPrintService.prototype.addArr = function (arr1, arr2) {
         for (var i = 0; i < arr2.length; i++) {
             arr1.push(arr2[i]);
@@ -701,7 +720,7 @@ var WewinPrintService = function () {
 
     /**
      * 解析xml
-     * @param {String} xmlString 
+     * @param {String} xmlString xml数据
      */
     WewinPrintService.prototype.loadXML = function (xmlString) {
         var xmlDoc = null;
@@ -732,6 +751,7 @@ var WewinPrintService = function () {
     /**
      * rfid解析
      * @param {Object} obj 
+     * @returns {String} rfid数据
      */
     WewinPrintService.prototype.rfidParse = function (obj) {
         var rfidType = obj.rfidType;
@@ -748,6 +768,7 @@ var WewinPrintService = function () {
 
     /**
      * 判断浏览器是否为IE浏览器
+     * @returns {Boolean} true:是 false:否
      */
     WewinPrintService.prototype.isIE = function () {
         if (!!window.ActiveXObject || "ActiveXObject" in window) {
@@ -759,6 +780,7 @@ var WewinPrintService = function () {
 
     /**
      * 获取当前协议对应的请求服务地址
+     * @returns 服务插件请求地址
      */
     WewinPrintService.prototype.getTrueUrl = function () {
         var url = "http://127.0.0.1:18188";
@@ -783,6 +805,7 @@ var WewinPrintService = function () {
      * @param {String} str - 需要打印的字符串
      * @param {Number} fontHeight - 字体高度
      * @param {Number} printWidth - 换行宽度
+     * @param {Number} type - 分隔符选择
      * @return {Array}
      */
     WewinPrintService.prototype.PrintTextView = function (obj, type) {
@@ -921,7 +944,7 @@ var WewinPrintService = function () {
      * @param {Number} startPos - 垂直居中打印的起始坐标
      * @param {Number} centerThick - 垂直居中打印的限制高度
      * @param {Number} height - 标签高度
-     * @return {Number} - 返回下一行打印的x坐标
+     * @returns {Array} 返回当前打印文本的json数组
      */
     WewinPrintService.prototype.PrintText = function (obj) {
         var str = obj.str;
@@ -1329,6 +1352,7 @@ var WewinPrintService = function () {
      * @param {Number} y - y坐标
      * @param {Number} width - 二维码宽度
      * @param {Number} rotate - 旋转
+     * @returns {Array} 返回当前打印二维码的json数组
      */
     WewinPrintService.prototype.PrintQrcode = function (obj) {
         var x = obj.x;
@@ -1363,6 +1387,7 @@ var WewinPrintService = function () {
      * @param {Number} rotate - 旋转
      * @param {Number} height - 条码高度
      * @param {Number} pwidth - 条码单元宽度
+     * @returns {Array} 返回当前打印条形码的json数组
      */
     WewinPrintService.prototype.PrintBarcode = function (obj) {
         var codeType = obj.codeType;
@@ -1400,6 +1425,7 @@ var WewinPrintService = function () {
      * @param {Number} ex - 旋转
      * @param {Number} ey - 条码高度
      * @param {Number} thickness - 线条厚度
+     * @returns {Array} 返回当前打印线条的json数组
      */
     WewinPrintService.prototype.PrintLine = function (obj) {
         var x = obj.x;
@@ -1435,6 +1461,7 @@ var WewinPrintService = function () {
      * @param {Number} height - 图片高度
      * @param {Number} path - 图片路径
      * @param {Number} rotate - 图片旋转
+     * @returns {Array} 返回当前打印图片的json数组
      */
     WewinPrintService.prototype.PrintLogo = function (obj) {
         var x = obj.x;
@@ -1466,6 +1493,7 @@ var WewinPrintService = function () {
 
     /**
      * 获取打印机分辨率
+     * @returns {String} 打印机分辨率
      */
     WewinPrintService.prototype.GetDots = function () {
         var printername = this.printername;
@@ -1513,7 +1541,7 @@ var WewinPrintService = function () {
      * @param {Number} fontHeight - 字体高度
      * @param {String} str - 字符串
      * @param {Number} printWidth - 换行宽度
-     * @return {Array} backstr
+     * @return {Array} 分割字符串的数组
      */
     WewinPrintService.prototype.autoSplit = function (fontHeight, str, printWidth) {
         var strLen = 0;
@@ -1549,24 +1577,44 @@ var WewinPrintService = function () {
         return backstr;
     }
 
+    /**
+     * 是否是中文
+     * @param {String} 单字符
+     * @returns {Boolean} true:是 false:否
+     */
     WewinPrintService.prototype.isChinese = function (temp) {
         var re = /^[\u4E00-\u9FA5]/;
         if (re.test(temp)) return true;
         return false;
     }
 
+    /**
+     * 是否是英文字母或数字
+     * @param {String} 单字符
+     * @returns {Boolean} true:是 false:否
+     */
     WewinPrintService.prototype.isWordOrNum = function (temp) {
         var re = /^[A-Za-z0-9]/;
         if (re.test(temp)) return true;
         return false;
     }
 
+    /**
+     * 是否是英文符号
+     * @param {String} 单字符
+     * @returns {Boolean} true:是 false:否
+     */
     WewinPrintService.prototype.isSmall = function (temp) {
         var re = new RegExp("[`~!@#$^&*()=|{}':;,\\[\\].<>/?]");
         if (re.test(temp)) return true;
         return false;
     }
 
+    /**
+     * 是否是中文符号
+     * @param {String} 单字符
+     * @returns {Boolean} true:是 false:否
+     */
     WewinPrintService.prototype.isBig = function (temp) {
         var re = new RegExp("[《》！（）【】；：。，、？￥……‘’”“——]");
         if (re.test(temp)) return true;
@@ -1574,8 +1622,9 @@ var WewinPrintService = function () {
     }
 
     /**
-     * 解析xml节点对象
-     * @param {Object} ele xml解析的节点对象 
+     * 解析xml数据
+     * @param {Object} ele xml数据
+     * @returns {Array} 解析xml生成的数组
      */
     WewinPrintService.prototype.parseXmlElement = function (ele) {
         var eles = [];
@@ -1591,10 +1640,27 @@ var WewinPrintService = function () {
         return eles;
     }
 
+    /**
+     * 解析json数据
+     * @param {Object} ele json数据
+     * @returns {Array} 解析json生成的数组
+     */
+    WewinPrintService.prototype.parseJsonElement = function (ele) {
+        if (typeof (ele) == "string") {
+            var arr = [];
+            arr.push(ele);
+            return arr;
+        } else if (typeof (ele) == "object") {
+            return ele;
+        }
+    }
+
     return new WewinPrintService();
 }
 
-//兼容IE8一下console报错问题
+/**
+ * 兼容IE8一下console报错问题
+ */
 window._console = window.console;//将原始console对象缓存
 window.console = (function (orgConsole) {
     return {//构造的新console对象
