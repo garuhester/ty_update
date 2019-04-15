@@ -190,7 +190,7 @@ var WewinPrintService = function () {
         html += "                <span id=\"versionnum\"><\/span>";
         html += "            <\/div>";
         html += "            <div class=\"right\">";
-        html += "                <a style=\"color: #000;font-size: 14px;\" href=\".\/plug(pop)_V1.0.5.zip\" target=\"_blank\">wewin打印服务插件下载<\/a>";
+        html += "                <a style=\"color: #000;font-size: 14px;\" href=\".\/plug(pop)_V1.0.6.zip\" target=\"_blank\">wewin打印服务插件下载<\/a>";
         html += "            <\/div>";
         html += "        <\/div>";
         html += "        <div class=\"cha\" onclick=\"$('.wewinview').remove();\">&#10006<\/div>";
