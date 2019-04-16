@@ -186,6 +186,15 @@ function ViewPrint(data, temp) {
                 text += "   <\/div>"; 
                 //---------------------------------------------------------
                                                     
+                //-----------------------动态二维码预览----------------------
+                text += "	<div class=\"qrcode" + i + "5\" style=\"";
+                text += "		position: absolute;";
+                text += "		top:  " + 76 + "px;";
+                text += "		left:  " + 113 + "px;";
+                text += "	\">"
+                text += "   <\/div>";
+                                            
+                //---------------------------------------------------------
                 text += "<\/div>";
             }
         }
@@ -203,6 +212,51 @@ function ViewPrint(data, temp) {
     }
 
     
+    //动态二维码
+    var render = "";
+    if(wps.isIE()){
+        render = "table";
+    }else{
+        render = "canvas";
+    }
+    var labelname = document.getElementById("labelname");
+    var selValue = labelname.value;
+    for (var i = 0; i < data.length; i++) {
+                            
+        if (typeof (dataStr) == "string") {
+            //标签类型
+            var LabelTypeElement = data[i].getElementsByTagName("EntityTypeId");
+            var labelType = wps.parseXmlElement(LabelTypeElement);
+            //Text节点
+            var TextElement = data[i].getElementsByTagName("Text");
+            var Texts = wps.parseXmlElement(TextElement);
+            //Code节点
+            var CodeElement = data[i].getElementsByTagName("Code");
+            var Codes = wps.parseXmlElement(CodeElement);
+        } else if (typeof (dataStr) == "object") {
+            //标签类型
+            var labelType = wps.parseJsonElement(data[i].EntityTypeId);
+            //Text节点
+            var Texts = wps.parseJsonElement(data[i].Text);
+            //Code节点
+            var Codes = wps.parseJsonElement(data[i].Code);
+        }
+
+        // 标签1(123)
+        if (labelType[0] == "123") {
+            if(selValue == 0){
+                var printTexts = Codes.slice(0, 1);
+                jQuery('.qrcode' + i + "5").qrcode({
+                    render: render,
+                    width: 75,
+                    height: 75,
+                    text: wps.utf16to8(printTexts[0])
+                });
+            }
+                                                    
+        }
+    }
+                            
 }
 
 //修改-标签打印
@@ -344,33 +398,10 @@ function print_tag123(lablesArr, Texts, Codes) {
         //---------------------------------------
                                         
         //---------------------------------------
-        var codeType = 4;
-        var x = 9;
-        var y = 22;
-        var rotate = 1;
-        var height = 30;
-        var pwidth = 2;
-                                                    
-        printTexts = Codes.slice(0, 1);
-                                                        
-        //条形码打印
-        var BarcodesArr = wps.PrintBarcode({
-            codeType: codeType,
-            str: printTexts[0],
-            x: x,
-            y: y,
-            rotate: rotate,
-            height: height,
-            pwidth: pwidth
-        });
-        resultArr = wps.addArr(resultArr, BarcodesArr);
-        //---------------------------------------
-                                        
-        //---------------------------------------
         var path= window.location.href.split('?')[0];
         path = path.substring(0, path.lastIndexOf('/')) + '/labelimage/CM1.bmp';//图片路径(绝对路径)
         var x = 50.053639846743295;
-        var y = 19;
+        var y = 19.000000000000057;
         var rotate = 1;
         var width = 76.9463601532567;
         var height = 74.0536398467433;
@@ -393,7 +424,7 @@ function print_tag123(lablesArr, Texts, Codes) {
         var rotate = 1;
         var width = 75;
                                                     
-        printTexts = Codes.slice(1, 2);
+        printTexts = Codes.slice(0, 1);
                                                         
         //二维码打印
         var CodesArr = wps.PrintQrcode({
@@ -404,6 +435,29 @@ function print_tag123(lablesArr, Texts, Codes) {
             rotate: rotate
         });
         resultArr = wps.addArr(resultArr, CodesArr);
+        //---------------------------------------
+                                        
+        //---------------------------------------
+        var codeType = 4;
+        var x = 9;
+        var y = 22;
+        var rotate = 1;
+        var height = 30;
+        var pwidth = 2;
+                                                    
+        printTexts = Codes.slice(1, 2);
+                                                        
+        //条形码打印
+        var BarcodesArr = wps.PrintBarcode({
+            codeType: codeType,
+            str: printTexts[0],
+            x: x,
+            y: y,
+            rotate: rotate,
+            height: height,
+            pwidth: pwidth
+        });
+        resultArr = wps.addArr(resultArr, BarcodesArr);
         //---------------------------------------
                                         
     }
