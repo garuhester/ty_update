@@ -484,18 +484,20 @@ var WewinPrintService = function () {
      * @param {Function} doLabelPrintFunc 
      */
     WewinPrintService.prototype.DoLabelPrint = function (doLabelPrintFunc) {
-        var supportPrinter = document.getElementById("printtype").innerHTML;
-        var supportPrinterArr = supportPrinter.split(" ");
-        var temp = true;
-        for (var i = 0; i < supportPrinterArr.length; i++) {
-            if (this.printername.indexOf(supportPrinterArr[i]) != -1) {
-                temp = false;
-                break;
+        if (this.noview != "1") {
+            var supportPrinter = document.getElementById("printtype").innerHTML;
+            var supportPrinterArr = supportPrinter.split(" ");
+            var temp = true;
+            for (var i = 0; i < supportPrinterArr.length; i++) {
+                if (this.printername.indexOf(supportPrinterArr[i]) != -1) {
+                    temp = false;
+                    break;
+                }
             }
-        }
-        if (temp) {
-            alert("不支持该打印机型号");
-            return;
+            if (temp) {
+                alert("不支持该打印机型号");
+                return;
+            }
         }
         doLabelPrintFunc(this.data);
     }
