@@ -975,7 +975,10 @@ var WewinPrintService = function () {
         x = x / 8 * dots;
         y = y / 8 * dots;
         fontHeight = fontHeight / 8 * dots;
+        fontWidth = fontHeight / 2;
         printWidth = printWidth / 8 * dots;
+        xoffset = xoffset / 8 * dots;
+        loffset = loffset / 8 * dots;
 
         var pname = this.printername;
         if (rotate == 0) {
