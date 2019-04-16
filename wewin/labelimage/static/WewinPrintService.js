@@ -1,5 +1,5 @@
 /**
- * WEWIN 通用式插件 API v1.0.5
+ * WEWIN 通用式插件 API v1.0.6
  * By WEWIN资管组
  */
 var WewinPrintService = function () {
@@ -177,7 +177,7 @@ var WewinPrintService = function () {
         html += "            <button style=\"color: #fff;border: none;padding: 5px 15px 5px 15px;border-radius: 50px;margin-left: 5px;margin-right: 5px;cursor: pointer;outline: none;font-size: 16px;\" class=\"wewinbtn\" type=\"button\" name=\"print\" onclick=\"lookHelp()\">";
         html += "                帮助";
         html += "            <\/button>";
-        html += "            <button style=\"color: #fff;border: none;padding: 5px 15px 5px 15px;border-radius: 50px;margin-left: 5px;margin-right: 5px;cursor: pointer;outline: none;font-size: 16px;\" class=\"wewinbtn\" type=\"button\" name=\"close\" onclick=\"$('.wewinview').remove();\">";
+        html += "            <button style=\"color: #fff;border: none;padding: 5px 15px 5px 15px;border-radius: 50px;margin-left: 5px;margin-right: 5px;cursor: pointer;outline: none;font-size: 16px;\" class=\"wewinbtn\" type=\"button\" name=\"close\" onclick=\"$('.wewinview').remove();$('.wewinview2').remove();\">";
         html += "                关闭";
         html += "            <\/button>";
         html += "        <\/div>";
@@ -193,7 +193,7 @@ var WewinPrintService = function () {
         html += "                <a style=\"color: #000;font-size: 14px;\" href=\".\/plug(pop)_V1.0.6.zip\" target=\"_blank\">wewin打印服务插件下载<\/a>";
         html += "            <\/div>";
         html += "        <\/div>";
-        html += "        <div class=\"cha\" onclick=\"$('.wewinview').remove();\">&#10006<\/div>";
+        html += "        <div class=\"cha\" onclick=\"$('.wewinview').remove();$('.wewinview2').remove();\">&#10006<\/div>";
         html += "    <\/div>";
         html += "    <canvas id=\"wewincanvas\" style=\"display: none\"><\/canvas>";
         html += "<\/div>";
@@ -1664,7 +1664,7 @@ var WewinPrintService = function () {
 }
 
 /**
- * 兼容IE8一下console报错问题
+ * 兼容IE8以下console报错问题
  */
 window._console = window.console;//将原始console对象缓存
 window.console = (function (orgConsole) {
@@ -1703,3 +1703,24 @@ window.console = (function (orgConsole) {
         };
     }
 }(window._console));
+
+/**
+ * 兼容IE8以下没有getElementsByClassName函数
+ */
+if (!document.getElementsByClassName) {
+    document.getElementsByClassName = function (className, element) {
+        var children = (element || document).getElementsByTagName('*');
+        var elements = new Array();
+        for (var i = 0; i < children.length; i++) {
+            var child = children[i];
+            var classNames = child.className.split(' ');
+            for (var j = 0; j < classNames.length; j++) {
+                if (classNames[j] == className) {
+                    elements.push(child);
+                    break;
+                }
+            }
+        }
+        return elements;
+    };
+}
