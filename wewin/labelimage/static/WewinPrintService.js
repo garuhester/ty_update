@@ -21,6 +21,8 @@ var WewinPrintService = function () {
             this.noview = "";
             this.measureDiv = null;
             this.measureCanvas = null;
+            this.qrcode = "";
+            this.DEFAULT_VERSION = 8.0;
         },
         /**
          * 初始化点击事件
@@ -798,6 +800,84 @@ var WewinPrintService = function () {
         console.log("请求服务地址：" + url);
 
         return url;
+    }
+
+    /**
+     * 开始打印，获取配置参数
+     * @param {Object} obj 配置参数
+     * @param {Function} callback 回调函数
+     */
+    WewinPrintService.prototype.StartPrint = function (obj, callback) {
+        if (obj == undefined) {
+            obj = {};
+        }
+        if (obj.qrcode != undefined) {
+            this.qrcode = obj.qrcode.trim();
+        }
+        callback(obj.noView);
+    }
+
+    /**
+     * 动态二维码部分，获取当前浏览器的IE版本，非IE浏览器默认为10，小于等于8使用图片方式
+     */
+    WewinPrintService.prototype.getIeVersion = function () {
+        var ua = navigator.userAgent.toLowerCase();
+        var isIE = ua.indexOf("msie") > -1;
+        var safariVersion = 10;
+        if (isIE) {
+            safariVersion = ua.match(/msie ([\d.]+)/)[1];
+        }
+        return safariVersion;
+    }
+
+    /**
+     * 获取动态二维码生成方式
+     */
+    WewinPrintService.prototype.qrcodeRender = function () {
+        var render = "", qrcodeTemp = true;
+        if (this.isIE()) {
+            if (this.qrcode == "table") {
+                render = "table";
+                qrcodeTemp = true;
+            } else {
+                if (this.getIeVersion() <= this.DEFAULT_VERSION) {
+                    render = "table";
+                    qrcodeTemp = false;
+                } else {
+                    render = "canvas";
+                    qrcodeTemp = true;
+                }
+            }
+        } else {
+            render = "canvas";
+        }
+
+        return {
+            render: render,
+            qrcodeTemp: qrcodeTemp
+        }
+    }
+
+    /**
+     * 动态生成二维码
+     * @param {String} className 类名
+     * @param {Object} qrcodeRender 动态二维码生成方式
+     * @param {Array} printTexts 二维码内容数组
+     * @param {Number} width 二维码宽度
+     * @param {Number} height 二维码高度
+     */
+    WewinPrintService.prototype.generateQrcode = function (obj) {
+        if (obj.qrcodeRender.qrcodeTemp) {
+            jQuery(obj.className).qrcode({
+                render: obj.qrcodeRender.render,
+                width: obj.width,
+                height: obj.height,
+                text: wps.utf16to8(obj.printTexts[0])
+            });
+        } else {
+            $(obj.className).text("");
+            $(obj.className).append("<img width='" + obj.width + "' height='" + obj.height + "' src='./labelimage/qrcode.png'/>");
+        }
     }
 
     //-------------------------------打印方法------------------------------
@@ -1723,4 +1803,11 @@ if (!document.getElementsByClassName) {
         }
         return elements;
     };
+}
+
+/**
+ * 兼容IE8以下没有trim函数
+ */
+String.prototype.trim = function () {
+    return this.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
 }

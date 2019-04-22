@@ -2,9 +2,17 @@
 var wps = WewinPrintService();
 
 //test.html页面传递json
-function LabelPrint(data) {
-    wps.LabelPrint(data);
-    Load();
+function LabelPrint(data, obj) {
+    wps.StartPrint(obj, function (noView) {
+        if (noView != undefined) {
+            //无预览打印
+            NoViewLabelPrint(data, noView.trim());
+        } else {
+            //有预览打印
+            wps.LabelPrint(data);
+            Load();
+        }
+    });
 }
 
 //加载预览页面
@@ -85,14 +93,14 @@ function ViewPrint(data, temp) {
     }
 
     for (var i = 0; i < data.length; i++) {
-        
+
         wps.SetViewInfo({
             //预览页面标题
             title: "重庆品胜 - 资管打印 - 打印预览",
             //修改版本号
             version: "TY_123"
         })
-                        
+
         if (typeof (dataStr) == "string") {
             //标签类型
             var LabelTypeElement = data[i].getElementsByTagName("EntityTypeId");
@@ -123,21 +131,21 @@ function ViewPrint(data, temp) {
                 labelname.options.add(new Option("25-25", "0"));
             }
             var selValue = labelname.value;
-                                
-            if(selValue == 0){
+
+            if (selValue == 0) {
                 //支持的打印机型号
-                wps.SetPrintInfo("P50");
+                wps.SetPrintInfo("P50 268");
 
                 if (i == 0 && data.length > 1) {
                     text += "<div style=\"width:60px;height:17px;overflow:hidden;margin: 0 auto;margin-bottom:10px\"><div style=\"height:17px;float:left;line-height:17px;font-size:15px;\">全选</div><input onclick=\"wps.chooseAllCheckbox()\" id=\"allcb\" type=\"checkbox\" style=\"width:17px;height:17px;margin:0;padding:0;float:right\"><\/div>";
                 }
 
-                if(i == 0){
+                if (i == 0) {
                     text += "<div style=\"position: relative;font-family:'" + wps.fontname + "';background-image:url(\'labelimage\/(25-25)(0).png\');background-repeat:no-repeat;width: 200px;height: 200px;display:block;margin:0 auto;padding:0;\">";
                 } else {
                     text += "<div style=\"position: relative;font-family:'" + wps.fontname + "';background-image:url(\'labelimage\/(25-25)(0).png\');background-repeat:no-repeat;width: 200px;height: 200px;display:block;margin:0 auto;padding:0;margin-top: 15px\">";
                 }
-                
+
                 if (data.length > 1) {
                     if (i == 0) {
                         text += "<input onclick=\"wps.chooseOneCheckbox()\" id=\"cb" + i + "\" type=\"checkbox\" checked=\"checked\" style=\"position: absolute;top:10px;left:-30px;width:17px;height:17px;\">";
@@ -145,7 +153,7 @@ function ViewPrint(data, temp) {
                         text += "<input onclick=\"wps.chooseOneCheckbox()\" id=\"cb" + i + "\" type=\"checkbox\" style=\"position: absolute;top:10px;left:-30px;width:17px;height:17px;\">";
                     }
                 }
-                            
+
                 //-----------------------文本预览----------------------------
                 var fontHeight = 16;//字体大小
                 var printWidth = 160;//换行宽度
@@ -156,7 +164,7 @@ function ViewPrint(data, temp) {
                 var loffset = 2;//Text外部行间距
                 var height = 39.05279999999999;//不用修改
                 var width = 160;//不用修改
-                                                    
+
                 //计算预览自适应
                 var fh = wps.AutoPrintTextView({
                     str: [Texts[0]],
@@ -168,7 +176,7 @@ function ViewPrint(data, temp) {
                     maxH: maxH
                 });
                 var lh = parseInt(fh) + 4;
-                                
+
                 text += "	<div style=\"";
                 text += "		position: absolute;";
                 text += "		top: " + y + "px;";
@@ -178,27 +186,28 @@ function ViewPrint(data, temp) {
                 text += "		line-height: " + lh + "px;";
                 text += "		font-size: " + fh + "px;";
                 text += "	\">"
-                                        
+
                 text += "       <div>";
                 text += wps.PrintTextView({ str: Texts[0], fontHeight: fh, printWidth: printWidth }, 0);
                 text += "       <\/div>";
-                                                            
-                text += "   <\/div>"; 
+
+                text += "   <\/div>";
                 //---------------------------------------------------------
-                                                    
+
                 //-----------------------动态二维码预览----------------------
                 text += "	<div class=\"qrcode" + i + "5\" style=\"";
                 text += "		position: absolute;";
                 text += "		top:  " + 76 + "px;";
                 text += "		left:  " + 113 + "px;";
+                text += "		font-size:0px;";
                 text += "	\">"
                 text += "   <\/div>";
-                                            
+
                 //---------------------------------------------------------
                 text += "<\/div>";
             }
         }
-                                
+
 
         preview.innerHTML = text;
     }
@@ -211,18 +220,14 @@ function ViewPrint(data, temp) {
         }
     }
 
-    
     //动态二维码
-    var render = "";
-    if(wps.isIE()){
-        render = "table";
-    }else{
-        render = "canvas";
-    }
+    var qrcodeRender = wps.qrcodeRender();
+
     var labelname = document.getElementById("labelname");
     var selValue = labelname.value;
+
     for (var i = 0; i < data.length; i++) {
-                            
+
         if (typeof (dataStr) == "string") {
             //标签类型
             var LabelTypeElement = data[i].getElementsByTagName("EntityTypeId");
@@ -244,19 +249,20 @@ function ViewPrint(data, temp) {
 
         // 标签1(123)
         if (labelType[0] == "123") {
-            if(selValue == 0){
+            if (selValue == 0) {
                 var printTexts = Codes.slice(0, 1);
-                jQuery('.qrcode' + i + "5").qrcode({
-                    render: render,
+                wps.generateQrcode({
+                    className: ".qrcode" + i + "5",
+                    qrcodeRender: qrcodeRender,
+                    printTexts: printTexts,
                     width: 75,
-                    height: 75,
-                    text: wps.utf16to8(printTexts[0])
+                    height: 75
                 });
             }
-                                                    
+
         }
     }
-                            
+
 }
 
 //修改-标签打印
@@ -273,7 +279,7 @@ function DoLabelPrint(data) {
     }
 
     for (var i = 0; i < data.length; i++) {
-        
+
         if (typeof (dataStr) == "string") {
             //标签类型
             var LabelTypeElement = data[i].getElementsByTagName("EntityTypeId");
@@ -292,10 +298,10 @@ function DoLabelPrint(data) {
             //Code节点
             var Codes = wps.parseJsonElement(data[i].Code);
         }
-                                
+
         // 标签1(123)
         if (labelType[0] == '123') {
-            if(data.length == 1){
+            if (data.length == 1) {
                 lablesArr = print_tag123(lablesArr, Texts, Codes);
             } else {
                 if (wps.noview == "1") {
@@ -342,12 +348,12 @@ function print_tag123(lablesArr, Texts, Codes) {
     var printername = wps.printername;
     var parr = wps.printername.split("&&");
     var dots = parr[1];
-                            
-    if(selValue == 0) {
+
+    if (selValue == 0) {
 
         labelWidth = 25 * dots;
         labelHeight = 25 * dots;
-                                            
+
         //---------------------------------------------------------
         //文字打印
         var x = 187.66666666666666;
@@ -360,9 +366,9 @@ function print_tag123(lablesArr, Texts, Codes) {
         var loffset = 1;
         var maxH = 25;
         var ptype = 0;
-                                        
+
         printTexts = Texts.slice(0, 1);
-                                                        
+
         var TextsArr = wps.PrintText({
             str: printTexts,
             fontHeight: fontHeight,
@@ -378,14 +384,14 @@ function print_tag123(lablesArr, Texts, Codes) {
         });
         resultArr = wps.addArr(resultArr, TextsArr);
         //---------------------------------------------------------
-                                                    
+
         //---------------------------------------
         var x = 126;
         var y = 30;
         var ex = 126;
         var ey = 180;
         var thickness = 5;
-        
+
         //线条打印
         var LinesArr = wps.PrintLine({
             x: x,
@@ -396,16 +402,16 @@ function print_tag123(lablesArr, Texts, Codes) {
         });
         resultArr = wps.addArr(resultArr, LinesArr);
         //---------------------------------------
-                                        
+
         //---------------------------------------
-        var path= window.location.href.split('?')[0];
+        var path = window.location.href.split('?')[0];
         path = path.substring(0, path.lastIndexOf('/')) + '/labelimage/CM1.bmp';//图片路径(绝对路径)
         var x = 50.053639846743295;
         var y = 19.000000000000057;
         var rotate = 1;
         var width = 76.9463601532567;
         var height = 74.0536398467433;
-        
+
         //图片打印
         var ImagesArr = wps.PrintLogo({
             path: path,
@@ -417,15 +423,15 @@ function print_tag123(lablesArr, Texts, Codes) {
         });
         resultArr = wps.addArr(resultArr, ImagesArr);
         //---------------------------------------
-                                        
+
         //---------------------------------------
         var x = 49;
         var y = 113;
         var rotate = 1;
         var width = 75;
-                                                    
+
         printTexts = Codes.slice(0, 1);
-                                                        
+
         //二维码打印
         var CodesArr = wps.PrintQrcode({
             str: printTexts[0],
@@ -436,7 +442,7 @@ function print_tag123(lablesArr, Texts, Codes) {
         });
         resultArr = wps.addArr(resultArr, CodesArr);
         //---------------------------------------
-                                        
+
         //---------------------------------------
         var codeType = 4;
         var x = 9;
@@ -444,9 +450,9 @@ function print_tag123(lablesArr, Texts, Codes) {
         var rotate = 1;
         var height = 30;
         var pwidth = 2;
-                                                    
+
         printTexts = Codes.slice(1, 2);
-                                                        
+
         //条形码打印
         var BarcodesArr = wps.PrintBarcode({
             codeType: codeType,
@@ -459,9 +465,9 @@ function print_tag123(lablesArr, Texts, Codes) {
         });
         resultArr = wps.addArr(resultArr, BarcodesArr);
         //---------------------------------------
-                                        
+
     }
-                                        
+
     var obj = {
         "labelWidth": labelWidth,
         "labelHeight": labelHeight,
@@ -474,4 +480,3 @@ function print_tag123(lablesArr, Texts, Codes) {
 
     return lablesArr;
 }
-                            

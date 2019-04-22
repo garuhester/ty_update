@@ -231,8 +231,8 @@
         border: 1px solid #000;
     }
     .wewindown {
-        margin-left: -375px;
         position: relative;
+        left: 0;
     }
     .wewinview {
         filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#7fdddddd, endColorstr=#7fdddddd);
