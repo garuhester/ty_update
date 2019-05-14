@@ -2,17 +2,29 @@
 var wps = WewinPrintService();
 
 //test.html页面传递json
-function LabelPrint(data, obj) {
-    wps.StartPrint(obj, function (noView) {
-        if (noView != undefined) {
-            //无预览打印
-            NoViewLabelPrint(data, noView.trim());
+function LabelPrint(data, obj, modalDialog) {
+    wps.StartPrint(obj, function (noView, modal) {
+        if (modal) {
+            if (wps.isIE()) {
+                var openUrl = "./PS_LabelPrint.html";
+                var targetWindowStyle = "dialogHeight: 660px; dialogWidth: 1000px; center: Yes; help: No; resizable: yes; status: yes; scroll:yes;";
+                showModalDialog(openUrl, data, targetWindowStyle);
+            } else {
+                //有预览打印
+                wps.LabelPrint(data);
+                Load();
+            }
         } else {
-            //有预览打印
-            wps.LabelPrint(data);
-            Load();
+            if (noView != undefined) {
+                //无预览打印
+                NoViewLabelPrint(data, noView.trim());
+            } else {
+                //有预览打印
+                wps.LabelPrint(data);
+                Load();
+            }
         }
-    });
+    }, modalDialog);
 }
 
 //加载预览页面
@@ -123,6 +135,16 @@ function ViewPrint(data, temp) {
         // 标签1(123)
         if (labelType[0] == "123") {
             noTag = false;
+
+            //检验打印数据是否符合规范
+            wps.SetRightData({
+                name: ["labelType", "Texts", "Codes"],
+                data: [
+                    { elem: labelType, num: 1 },
+                    { elem: Texts, num: 1 },
+                    { elem: Codes, num: 2 }
+                ]
+            }, 1);
 
             //标签型号
             var labelname = document.getElementById("labelname");
@@ -259,7 +281,7 @@ function ViewPrint(data, temp) {
                     height: 75
                 });
             }
-
+            
         }
     }
 

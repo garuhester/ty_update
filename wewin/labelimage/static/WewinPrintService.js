@@ -23,6 +23,8 @@ var WewinPrintService = function () {
             this.measureCanvas = null;
             this.qrcode = "";
             this.DEFAULT_VERSION = 8.0;
+            this.xmlWrong = 0;
+            this.modal = false;
         },
         /**
          * 初始化点击事件
@@ -179,9 +181,11 @@ var WewinPrintService = function () {
         html += "            <button style=\"color: #fff;border: none;padding: 5px 15px 5px 15px;border-radius: 50px;margin-left: 5px;margin-right: 5px;cursor: pointer;outline: none;font-size: 16px;\" class=\"wewinbtn\" type=\"button\" name=\"print\" onclick=\"lookHelp()\">";
         html += "                帮助";
         html += "            <\/button>";
-        html += "            <button style=\"color: #fff;border: none;padding: 5px 15px 5px 15px;border-radius: 50px;margin-left: 5px;margin-right: 5px;cursor: pointer;outline: none;font-size: 16px;\" class=\"wewinbtn\" type=\"button\" name=\"close\" onclick=\"$('.wewinview').remove();$('.wewinview2').remove();\">";
-        html += "                关闭";
-        html += "            <\/button>";
+        if (!this.modal) {
+            html += "            <button style=\"color: #fff;border: none;padding: 5px 15px 5px 15px;border-radius: 50px;margin-left: 5px;margin-right: 5px;cursor: pointer;outline: none;font-size: 16px;\" class=\"wewinbtn\" type=\"button\" name=\"close\" onclick=\"$('.wewinview').remove();$('.wewinview2').remove();\">";
+            html += "                关闭";
+            html += "            <\/button>";
+        }
         html += "        <\/div>";
         html += "        <div class=\"wewinsplit2\"><\/div>";
         html += "        <div class=\"tags\">";
@@ -192,10 +196,12 @@ var WewinPrintService = function () {
         html += "                <span id=\"versionnum\"><\/span>";
         html += "            <\/div>";
         html += "            <div class=\"right\">";
-        html += "                <a style=\"color: #000;font-size: 14px;\" href=\".\/plug(pop)_V1.0.6.zip\" target=\"_blank\">wewin打印服务插件下载<\/a>";
+        html += "                <a style=\"color: #000;font-size: 14px;\" href=\".\/plug(pop)_V1.0.7.zip\" target=\"_blank\">wewin打印服务插件下载<\/a>";
         html += "            <\/div>";
         html += "        <\/div>";
-        html += "        <div class=\"cha\" onclick=\"$('.wewinview').remove();$('.wewinview2').remove();\">&#10006<\/div>";
+        if (!this.modal) {
+            html += "        <div class=\"cha\" onclick=\"$('.wewinview').remove();$('.wewinview2').remove();\">&#10006<\/div>";
+        }
         html += "    <\/div>";
         html += "    <canvas id=\"wewincanvas\" style=\"display: none\"><\/canvas>";
         html += "<\/div>";
@@ -351,7 +357,27 @@ var WewinPrintService = function () {
      * 查看报文
      */
     WewinPrintService.prototype.lookXml = function () {
-        alert(JSON.stringify(this.data));
+        var copyData = JSON.stringify(this.data);
+
+        //复制打印数据
+        try {
+            if (this.isIE()) {
+                window.clipboardData.setData("Text", copyData);
+            } else {
+                var oInput = document.createElement('input');
+                oInput.value = copyData;
+                document.body.appendChild(oInput);
+                oInput.select();
+                document.execCommand("Copy");
+                oInput.id = 'oInput';
+                oInput.style.display = 'none';
+                $("#oInput").remove();
+            }
+        } catch (error) {
+            console.log(error);
+        }
+        
+        alert(copyData);
     }
 
     /**
@@ -561,6 +587,7 @@ var WewinPrintService = function () {
     WewinPrintService.prototype.utf16to8 = function (str) {
         var out, i, len, c;
         out = "";
+        str = this.isWrong(str);
         len = str.length;
         for (i = 0; i < len; i++) {
             c = str.charCodeAt(i);
@@ -807,14 +834,25 @@ var WewinPrintService = function () {
      * @param {Object} obj 配置参数
      * @param {Function} callback 回调函数
      */
-    WewinPrintService.prototype.StartPrint = function (obj, callback) {
+    WewinPrintService.prototype.StartPrint = function (obj, callback, modalDialog) {
+
+        this.xmlWrong = 0;
+
         if (obj == undefined) {
             obj = {};
         }
         if (obj.qrcode != undefined) {
             this.qrcode = obj.qrcode.trim();
         }
-        callback(obj.noView);
+        if (obj.modal == undefined) {
+            obj.modal = false;
+        } else if (this.isIE()) {
+            this.modal = obj.modal;
+        }
+        if (modalDialog == "modal") {
+            this.modal = true;
+        }
+        callback(obj.noView, obj.modal);
     }
 
     /**
@@ -868,15 +906,65 @@ var WewinPrintService = function () {
      */
     WewinPrintService.prototype.generateQrcode = function (obj) {
         if (obj.qrcodeRender.qrcodeTemp) {
-            jQuery(obj.className).qrcode({
-                render: obj.qrcodeRender.render,
-                width: obj.width,
-                height: obj.height,
-                text: wps.utf16to8(obj.printTexts[0])
-            });
+            if (obj.printTexts.length != 0 && obj.printTexts[0].trim() != "") {
+                jQuery(obj.className).qrcode({
+                    render: obj.qrcodeRender.render,
+                    width: obj.width,
+                    height: obj.height,
+                    text: wps.utf16to8(obj.printTexts[0])
+                });
+            }
         } else {
             $(obj.className).text("");
             $(obj.className).append("<img width='" + obj.width + "' height='" + obj.height + "' src='./labelimage/qrcode.png'/>");
+        }
+    }
+
+    /**
+     * 判断字符串是否不符合规范
+     */
+    WewinPrintService.prototype.isWrong = function (arr) {
+        if (typeof arr == "object") {
+            for (var i = 0, j = arr.length; i < j; i++) {
+                var str = arr[i];
+                if (str == undefined || str == null || str == "") {
+                    arr[i] = "";
+                }
+            }
+            return arr;
+        } else {
+            if (arr == undefined || arr == null || arr == "") {
+                return "";
+            }
+            return arr;
+        }
+    }
+
+    /**
+     * 判断打印数据是否符合规范
+     * @param {Number} type 是否弹窗(0:不弹窗 1:弹窗)
+     */
+    WewinPrintService.prototype.SetRightData = function (obj, type) {
+        if (this.xmlWrong == 0) {
+            var data = obj.data;
+            for (var i = 0; i < data.length; i++) {
+                if (data[i].elem.length < data[i].num) {
+                    if (type == 0) {
+                        console.log("xml或json节点数有误");
+                    } else if (type == 1) {
+                        var html = "xml或json节点数有误\n\n正确节点数：\n";
+                        html += "----------------\n";
+                        for (var j = 0; j < obj.name.length; j++) {
+                            html += obj.name[j] + ": " + data[j].num + "个\n";
+                        }
+                        html += "----------------";
+                        alert(html);
+                        console.log(html);
+                    }
+                    this.xmlWrong = 1;
+                    break;
+                }
+            }
         }
     }
 
@@ -892,6 +980,7 @@ var WewinPrintService = function () {
      */
     WewinPrintService.prototype.PrintTextView = function (obj, type) {
         var str = obj.str;
+        str = this.isWrong(str);
         var fontHeight = obj.fontHeight;
         var printWidth = obj.printWidth;
         var backstr = [];
@@ -945,6 +1034,7 @@ var WewinPrintService = function () {
      */
     WewinPrintService.prototype.AutoPrintTextView = function (obj) {
         var str = obj.str;
+        str = this.isWrong(str);
         var fontHeight = obj.fontHeight;
         var printWidth = obj.printWidth;
         var y = obj.y;
@@ -1030,6 +1120,7 @@ var WewinPrintService = function () {
      */
     WewinPrintService.prototype.PrintText = function (obj) {
         var str = obj.str;
+        str = this.isWrong(str);
         var fontHeight = obj.fontHeight;
         var fontWidth = fontHeight / 2;
         var fontWeight = obj.fontWeight;
@@ -1444,6 +1535,7 @@ var WewinPrintService = function () {
         var y = obj.y;
         var width = obj.width;
         var str = obj.str;
+        str = this.isWrong(str);
         var rotate = obj.rotate;
 
         //获取打印机分辨率(8 | 12)
@@ -1481,6 +1573,7 @@ var WewinPrintService = function () {
         var pwidth = obj.pwidth;
         var height = obj.height;
         var str = obj.str;
+        str = this.isWrong(str);
         var rotate = obj.rotate;
 
         //获取打印机分辨率(8 | 12)
@@ -1554,6 +1647,7 @@ var WewinPrintService = function () {
         var width = obj.width;
         var height = obj.height;
         var path = obj.path;
+        path = this.isWrong(path);
         var rotate = obj.rotate;
 
         //获取打印机分辨率(8 | 12)
@@ -1629,6 +1723,7 @@ var WewinPrintService = function () {
      * @return {Array} 分割字符串的数组
      */
     WewinPrintService.prototype.autoSplit = function (fontHeight, str, printWidth) {
+        str = this.isWrong(str);
         var strLen = 0;
         var temp = 0;
         var backstr = [];
@@ -1713,13 +1808,11 @@ var WewinPrintService = function () {
      */
     WewinPrintService.prototype.parseXmlElement = function (ele) {
         var eles = [];
-        if (ele[0] != undefined && ele[0].childNodes[0] != undefined) {
-            for (var j = 0; j < ele.length; j++) {
-                if (ele[j].firstChild != null) {
-                    eles[j] = ele[j].firstChild.nodeValue;
-                } else {
-                    eles[j] = "";
-                }
+        for (var j = 0; j < ele.length; j++) {
+            if (ele[j] != undefined && ele[j].childNodes[0] != undefined || ele[j].firstChild != null) {
+                eles[j] = ele[j].firstChild.nodeValue;
+            } else {
+                eles[j] = "";
             }
         }
         return eles;

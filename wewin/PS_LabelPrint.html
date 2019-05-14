@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>WewinPrintService</title>
+    <link rel="stylesheet" href="./labelimage/static/WewinView.css">
+</head>
+
+<body>
+    <script type="text/javascript" src="./labelimage/static/jquery.min.js"></script>
+    <script type="text/javascript" src="./labelimage/static/all.jquery.js"></script>
+    <script type="text/javascript" src="./labelimage/static/WewinPrintService.js"></script>
+    <script type="text/javascript" src="./code.js"></script>
+    <script>
+        $(function () {
+            var data = window.dialogArguments;
+            if (!data) {
+                data = window.location.search;
+                data = data.substring(1);
+            }
+            LabelPrint(data, {}, "modal");
+        })
+    </script>
+</body>
+
+</html>
