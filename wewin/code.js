@@ -144,7 +144,7 @@ function ViewPrint(data, temp) {
                     { elem: Texts, num: 1 },
                     { elem: Codes, num: 2 }
                 ]
-            }, 1);
+            }, 0);
 
             //标签型号
             var labelname = document.getElementById("labelname");

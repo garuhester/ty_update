@@ -1,6 +1,7 @@
 /**
- * WEWIN 通用式插件 API v1.0.6
- * By WEWIN资管组
+ * Name: WEWIN 通用式插件 API v1.0.7
+ * Time: 2019/05/24
+ * Author: WEWIN资管组
  */
 var WewinPrintService = function () {
 
@@ -25,6 +26,7 @@ var WewinPrintService = function () {
             this.DEFAULT_VERSION = 8.0;
             this.xmlWrong = 0;
             this.modal = false;
+            this.printNum = 1;
         },
         /**
          * 初始化点击事件
@@ -376,7 +378,7 @@ var WewinPrintService = function () {
         } catch (error) {
             console.log(error);
         }
-        
+
         alert(copyData);
     }
 
@@ -435,8 +437,12 @@ var WewinPrintService = function () {
         }
 
         if (printer.trim() == "") {
-            this.printername = "0&&8&&0";
-            func();
+            this.printername = "";
+            if (this.printername != "") {
+                func();
+            } else {
+                alert("没有找到对应打印机");
+            }
             return;
         }
 
@@ -467,12 +473,16 @@ var WewinPrintService = function () {
             var jsonData = JSON.parse(data);
             var printers = jsonData.content;
             for (var i = 0; i < printers.length; i++) {
-                if (printers[i].printer.indexOf(printer) != -1) {
+                if (printers[i].printer.toLowerCase().indexOf(printer.toLowerCase()) != -1) {
                     _this.printername = printers[i].printer + "&&" + printers[i].dots + "&&" + printers[i].hasDrive;
                     break;
                 }
             }
-            func();
+            if (_this.printername != "") {
+                func();
+            } else {
+                alert("没有找到对应打印机");
+            }
         }, function (error) {
             if (error == 0) {
                 alert("请安装插件或启动服务");
@@ -490,12 +500,16 @@ var WewinPrintService = function () {
                     var jsonData = data;
                     var printers = jsonData.content;
                     for (var i = 0; i < printers.length; i++) {
-                        if (printers[i].printer.indexOf(printer) != -1) {
+                        if (printers[i].printer.toLowerCase().indexOf(printer.toLowerCase()) != -1) {
                             _this.printername = printer + "&&" + printers[i].dots + "&&" + printers[i].hasDrive;
                             break;
                         }
                     }
-                    func();
+                    if (_this.printername != "") {
+                        func();
+                    } else {
+                        alert("没有找到对应打印机");
+                    }
                 },
                 error: function (error) {
                     alert("请安装插件或启动服务")
@@ -504,7 +518,6 @@ var WewinPrintService = function () {
             });
 
         });
-
     }
 
     /**
@@ -517,7 +530,7 @@ var WewinPrintService = function () {
             var supportPrinterArr = supportPrinter.split(" ");
             var temp = true;
             for (var i = 0; i < supportPrinterArr.length; i++) {
-                if (this.printername.indexOf(supportPrinterArr[i]) != -1) {
+                if (this.printername.toLowerCase().indexOf(supportPrinterArr[i].toLowerCase()) != -1) {
                     temp = false;
                     break;
                 }
@@ -606,6 +619,28 @@ var WewinPrintService = function () {
     }
 
     /**
+     * 每一张标签打多次处理
+     */
+    WewinPrintService.prototype.MulPrint = function (obj) {
+        var newArr = [];
+        for (var i = 0; i < obj.labels.length; i++) {
+            var ar = [];
+            for (var j = 0; j < this.printNum; j++) {
+                ar.push(obj.labels[i])
+            }
+            newArr.push(ar);
+        }
+        obj.labels = [];
+        for (var i = 0; i < newArr.length; i++) {
+            var cArr = newArr[i];
+            for (var j = 0; j < cArr.length; j++) {
+                obj.labels.push(cArr[j]);
+            }
+        }
+        return obj;
+    }
+
+    /**
      * 打印方法
      * @param {Object} rawData 打印数据
      * @returns {String} 对象转字符串的打印数据
@@ -618,6 +653,7 @@ var WewinPrintService = function () {
             var hasDrive = parr[2];
             rawData.printer = pname;
             rawData.hasDrive = hasDrive;
+            rawData = this.MulPrint(rawData);
             var sendData = "";
             sendData = this.resolveData(rawData);
             console.log("打印前的数据(json)：", JSON.parse(sendData));
@@ -852,6 +888,9 @@ var WewinPrintService = function () {
         if (modalDialog == "modal") {
             this.modal = true;
         }
+        if (obj.printNum != undefined && obj.printNum != null && obj.printNum >= 1 && obj.printNum <= 200) {
+            this.printNum = obj.printNum;
+        }
         callback(obj.noView, obj.modal);
     }
 
@@ -1022,7 +1061,7 @@ var WewinPrintService = function () {
 
     /**
      * 打印预览自适应
-     * @param {String} str - 需要打印的字符串
+     * @param {Array} str - 需要打印的字符串数组
      * @param {Number} fontHeight - 字体高度
      * @param {Number} printWidth - 换行宽度
      * @param {Number} y - y坐标
@@ -1102,7 +1141,7 @@ var WewinPrintService = function () {
 
     /**
      * 文本打印函数
-     * @param {String} str - 需要打印的字符串
+     * @param {Array} str - 需要打印的字符串数组
      * @param {Number} fontHeight - 字体高度
      * @param {Number} fontWeight - 字体黑度
      * @param {Number} printWidth - 换行宽度
