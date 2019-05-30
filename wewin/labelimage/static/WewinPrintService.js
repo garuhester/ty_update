@@ -1,6 +1,6 @@
 /**
  * Name: WEWIN 通用式插件 API v1.0.7
- * Time: 2019/05/24
+ * Time: 2019/05/30
  * Author: WEWIN资管组
  */
 var WewinPrintService = function () {
@@ -26,7 +26,11 @@ var WewinPrintService = function () {
             this.DEFAULT_VERSION = 8.0;
             this.xmlWrong = 0;
             this.modal = false;
-            this.printNum = 1;
+            this.printNum = -1;
+
+            this.nowViewTip = "没有找到对应打印机";
+            this.noServiceTip = "请安装插件或启动服务";
+            this.printNumTip = "每张打印份数请输入1-99的整数数字";
         },
         /**
          * 初始化点击事件
@@ -134,6 +138,11 @@ var WewinPrintService = function () {
         var index = labelname.selectedIndex; // 选中索引
         var content = labelname.options[index].text; // 选中文本
         document.getElementById("printtype3").innerHTML = "当前模板: <span style='font-weight:bold;color:red'>" + content + "</span>";
+
+        //每张打印份数
+        if (this.printNum != -1 && document.getElementById('printNum') != null) {
+            document.getElementById('printNum').value = this.printNum;
+        }
     }
 
     /**
@@ -189,8 +198,17 @@ var WewinPrintService = function () {
             html += "            <\/button>";
         }
         html += "        <\/div>";
+        if (this.printNum != -1) {
+            html += "        <div class=\"wewinbtns\">";
+            html += "           <span style='color: #FF3B30;font-weight:bold;'>每张打印份数：<\/span><input id='printNum' type='number' max='99' min='1' style='ime-mode:disabled;width:55px;border-radius: 5px;outline: none;font-size: 14px;padding: 2px;padding-left:5px;box-sizing: border-box;margin-top:7px;' onKeyPress=\"if(event.keyCode < 48 || event.keyCode > 57) event.returnValue = false;\" onKeyUp=\"this.value=this.value.replace(/\D/g,'')\" /> 份";
+            html += "        <\/div>";
+        }
         html += "        <div class=\"wewinsplit2\"><\/div>";
-        html += "        <div class=\"tags\">";
+        if (this.printNum != -1) {
+            html += "        <div class=\"tags\" style='height: calc(100% - 255px);'>";
+        } else {
+            html += "        <div class=\"tags\" style='height: calc(100% - 245px);'>";
+        }
         html += "            <div style=\"margin-bottom: 50px;text-align:center;\" id=\"preview\"><\/div>";
         html += "        <\/div>";
         html += "        <div class=\"wewindown\">";
@@ -231,6 +249,7 @@ var WewinPrintService = function () {
      * 获取打印机列表，并添加到下拉选择框
      */
     WewinPrintService.prototype.Getperinterlist = function () {
+        var _this = this;
         //查询打印机数据
         var rawData = {
             "handleType": "0",
@@ -258,7 +277,7 @@ var WewinPrintService = function () {
             _this.AddPrinter(data);
         }, function (error) {
             if (error == 0) {
-                alert("请安装插件或启动服务");
+                alert(_this.noServiceTip);
                 return;
             }
             console.log('非jsonp-查询-error：' + error);
@@ -273,7 +292,7 @@ var WewinPrintService = function () {
                     _this.AddPrinter(JSON.stringify(data));
                 },
                 error: function (error) {
-                    alert("请安装插件或启动服务")
+                    alert(_this.noServiceTip);
                     console.log("jsonp-查询-error：", error);
                 }
             });
@@ -417,6 +436,7 @@ var WewinPrintService = function () {
         this.data = tagData;
         this.printername = "";
         this.noview = "1";
+        var _this = this;
         var html = "<canvas id=\"wewincanvas\" style=\"display: none\"><\/canvas>";
         $(document.body).append(html);
 
@@ -441,7 +461,7 @@ var WewinPrintService = function () {
             if (this.printername != "") {
                 func();
             } else {
-                alert("没有找到对应打印机");
+                alert(_this.nowViewTip);
             }
             return;
         }
@@ -481,11 +501,11 @@ var WewinPrintService = function () {
             if (_this.printername != "") {
                 func();
             } else {
-                alert("没有找到对应打印机");
+                alert(_this.nowViewTip);
             }
         }, function (error) {
             if (error == 0) {
-                alert("请安装插件或启动服务");
+                alert(_this.noServiceTip);
                 return;
             }
             console.log('非jsonp-查询-error：' + error);
@@ -508,11 +528,11 @@ var WewinPrintService = function () {
                     if (_this.printername != "") {
                         func();
                     } else {
-                        alert("没有找到对应打印机");
+                        alert(_this.nowViewTip);
                     }
                 },
                 error: function (error) {
-                    alert("请安装插件或启动服务")
+                    alert(_this.noServiceTip);
                     console.log("jsonp-查询-error：", error);
                 }
             });
@@ -622,11 +642,22 @@ var WewinPrintService = function () {
      * 每一张标签打多次处理
      */
     WewinPrintService.prototype.MulPrint = function (obj) {
+        var printNumObj = document.getElementById('printNum');
+        if (printNumObj != null) {
+            this.printNum = document.getElementById('printNum').value;
+            this.printNum = parseInt(this.printNum);
+            if (typeof (this.printNum) != 'number' || this.printNum < 1 || this.printNum > 99 || isNaN(this.printNum)) {
+                return false;
+            }
+        }
+        if (this.printNum == -1) {
+            this.printNum = 1;
+        }
         var newArr = [];
         for (var i = 0; i < obj.labels.length; i++) {
             var ar = [];
             for (var j = 0; j < this.printNum; j++) {
-                ar.push(obj.labels[i])
+                ar.push(obj.labels[i]);
             }
             newArr.push(ar);
         }
@@ -654,6 +685,10 @@ var WewinPrintService = function () {
             rawData.printer = pname;
             rawData.hasDrive = hasDrive;
             rawData = this.MulPrint(rawData);
+            if (rawData == false) {
+                alert(this.printNumTip);
+                return;
+            }
             var sendData = "";
             sendData = this.resolveData(rawData);
             console.log("打印前的数据(json)：", JSON.parse(sendData));
@@ -877,9 +912,11 @@ var WewinPrintService = function () {
         if (obj == undefined) {
             obj = {};
         }
+        //qrcode
         if (obj.qrcode != undefined) {
             this.qrcode = obj.qrcode.trim();
         }
+        //modal
         if (obj.modal == undefined) {
             obj.modal = false;
         } else if (this.isIE()) {
@@ -888,8 +925,14 @@ var WewinPrintService = function () {
         if (modalDialog == "modal") {
             this.modal = true;
         }
-        if (obj.printNum != undefined && obj.printNum != null && obj.printNum >= 1 && obj.printNum <= 200) {
-            this.printNum = obj.printNum;
+        //printNum
+        if (obj.printNum != undefined && obj.printNum != null) {
+            if (typeof (obj.printNum) != "number" || obj.printNum < 1 || obj.printNum > 99 || isNaN(obj.printNum)) {
+                alert(this.printNumTip);
+                this.printNum = -1;
+            } else {
+                this.printNum = obj.printNum;
+            }
         }
         callback(obj.noView, obj.modal);
     }
