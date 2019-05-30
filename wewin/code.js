@@ -8,7 +8,13 @@ function LabelPrint(data, obj, modalDialog) {
             if (wps.isIE()) {
                 var openUrl = "./PS_LabelPrint.html";
                 var targetWindowStyle = "dialogHeight: 660px; dialogWidth: 1000px; center: Yes; help: No; resizable: yes; status: yes; scroll:yes;";
-                showModalDialog(openUrl, data, targetWindowStyle);
+                var sendData = [];
+                sendData.push(data);
+                if (obj == undefined || obj == null) {
+                    obj = {};
+                }
+                sendData.push(obj);
+                showModalDialog(openUrl, sendData, targetWindowStyle);
             } else {
                 //有预览打印
                 wps.LabelPrint(data);
@@ -281,7 +287,7 @@ function ViewPrint(data, temp) {
                     height: 75
                 });
             }
-            
+
         }
     }
 

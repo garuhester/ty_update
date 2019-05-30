@@ -19,7 +19,9 @@
                 data = window.location.search;
                 data = data.substring(1);
             }
-            LabelPrint(data, {}, "modal");
+            data[1].modal = false;
+            data[1].noView = undefined;
+            LabelPrint(data[0], data[1], "modal");
         })
     </script>
 </body>
