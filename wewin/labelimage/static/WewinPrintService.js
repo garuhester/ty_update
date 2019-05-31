@@ -1,6 +1,6 @@
 /**
  * Name: WEWIN 通用式插件 API v1.0.7
- * Time: 2019/05/30
+ * Time: 2019/05/31
  * Author: WEWIN资管组
  */
 var WewinPrintService = function () {
@@ -14,23 +14,25 @@ var WewinPrintService = function () {
          * 初始化原始参数
          */
         initParams: function () {
-            this.printername = "";
+            this.printername = "";//打印机名称
             this.Isp30 = -1;
-            this.fontname = "宋体";
-            this.data = [];
-            this.dots = 0;
-            this.noview = "";
-            this.measureDiv = null;
-            this.measureCanvas = null;
-            this.qrcode = "";
-            this.DEFAULT_VERSION = 8.0;
-            this.xmlWrong = 0;
-            this.modal = false;
-            this.printNum = -1;
+            this.fontname = "宋体";//打印默认字体
+            this.data = [];//打印数据
+            this.dots = 0;//打印机分辨率点数
+            this.measureDiv = null;//测量字符长度div
+            this.measureCanvas = null;//测量字符长度canvas
+            this.DEFAULT_VERSION = 8.0;//动态二维码生成方式IE版本判断
+            this.xmlWrong = 0;//打印数据是否符合规范参数
+            this.noview = "";//无预览参数
+            this.qrcode = "";//动态二维码生成方式参数
+            this.modal = false;//IE模态框预览方式参数
+            this.printNum = -1;//每张打印份数参数
+            this.minPrintNum = 1;//每张打印份数最小值
+            this.maxPrintNum = 99;//每张打印份数最大值
 
-            this.nowViewTip = "没有找到对应打印机";
-            this.noServiceTip = "请安装插件或启动服务";
-            this.printNumTip = "每张打印份数请输入1-99的整数数字";
+            this.noViewTip = "没有找到对应打印机";//无预览监测打印机型号提示
+            this.noServiceTip = "请安装插件或启动服务";//监测插件情况提示
+            this.printNumTip = "每张打印份数请输入" + this.minPrintNum + "-" + this.maxPrintNum + "的整数数字";//每张打印份数提示
         },
         /**
          * 初始化点击事件
@@ -200,7 +202,7 @@ var WewinPrintService = function () {
         html += "        <\/div>";
         if (this.printNum != -1) {
             html += "        <div class=\"wewinbtns\">";
-            html += "           <span style='color: #FF3B30;font-weight:bold;'>每张打印份数：<\/span><input id='printNum' type='number' max='99' min='1' style='ime-mode:disabled;width:55px;border-radius: 5px;outline: none;font-size: 14px;padding: 2px;padding-left:5px;box-sizing: border-box;margin-top:7px;' onKeyPress=\"if(event.keyCode < 48 || event.keyCode > 57) event.returnValue = false;\" onKeyUp=\"this.value=this.value.replace(/\D/g,'')\" /> 份";
+            html += "           <span style='color: #FF3B30;font-weight:bold;'>每张打印份数：<\/span><input id='printNum' type='number' max='" + this.maxPrintNum + "' min='" + this.minPrintNum + "' style='ime-mode:disabled;width:55px;border-radius: 5px;outline: none;font-size: 14px;padding: 2px;padding-left:5px;box-sizing: border-box;margin-top:7px;' onKeyPress=\"if(event.keyCode < 48 || event.keyCode > 57) event.returnValue = false;\" onKeyUp=\"this.value=this.value.replace(/\\D/g,'')\" /> (" + this.minPrintNum + "-" + this.maxPrintNum + ") 份";
             html += "        <\/div>";
         }
         html += "        <div class=\"wewinsplit2\"><\/div>";
@@ -461,7 +463,7 @@ var WewinPrintService = function () {
             if (this.printername != "") {
                 func();
             } else {
-                alert(_this.nowViewTip);
+                alert(_this.noViewTip);
             }
             return;
         }
@@ -501,7 +503,7 @@ var WewinPrintService = function () {
             if (_this.printername != "") {
                 func();
             } else {
-                alert(_this.nowViewTip);
+                alert(_this.noViewTip);
             }
         }, function (error) {
             if (error == 0) {
@@ -528,7 +530,7 @@ var WewinPrintService = function () {
                     if (_this.printername != "") {
                         func();
                     } else {
-                        alert(_this.nowViewTip);
+                        alert(_this.noViewTip);
                     }
                 },
                 error: function (error) {
@@ -646,7 +648,7 @@ var WewinPrintService = function () {
         if (printNumObj != null) {
             this.printNum = document.getElementById('printNum').value;
             this.printNum = parseInt(this.printNum);
-            if (typeof (this.printNum) != 'number' || this.printNum < 1 || this.printNum > 99 || isNaN(this.printNum)) {
+            if (typeof (this.printNum) != 'number' || this.printNum < this.minPrintNum || this.printNum > this.maxPrintNum || isNaN(this.printNum)) {
                 return false;
             }
         }
@@ -927,7 +929,7 @@ var WewinPrintService = function () {
         }
         //printNum
         if (obj.printNum != undefined && obj.printNum != null) {
-            if (typeof (obj.printNum) != "number" || obj.printNum < 1 || obj.printNum > 99 || isNaN(obj.printNum)) {
+            if (typeof (obj.printNum) != "number" || obj.printNum < this.minPrintNum || obj.printNum > this.maxPrintNum || isNaN(obj.printNum)) {
                 alert(this.printNumTip);
                 this.printNum = -1;
             } else {
@@ -1048,6 +1050,21 @@ var WewinPrintService = function () {
                 }
             }
         }
+    }
+
+    /**
+     * 打开IE浏览器模态框预览
+     */
+    WewinPrintService.prototype.OpenModalDialog = function (dialogData) {
+        var openUrl = dialogData.path;
+        var targetWindowStyle = "dialogHeight: " + dialogData.height + "px; dialogWidth: " + dialogData.width + "px; center: Yes; help: No; resizable: yes; status: yes; scroll:yes;";
+        var sendData = [];
+        sendData.push(dialogData.data);
+        if (dialogData.obj == undefined || dialogData.obj == null) {
+            dialogData.obj = {};
+        }
+        sendData.push(dialogData.obj);
+        showModalDialog(openUrl, sendData, targetWindowStyle);
     }
 
     //-------------------------------打印方法------------------------------
