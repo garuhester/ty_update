@@ -143,7 +143,7 @@ function ViewPrint(data, temp) {
 
             //检验打印数据是否符合规范
             wps.SetRightData({
-                name: ["labelType", "Texts", "Codes"],
+                name: ["labelType", "Text", "Code"],
                 data: [
                     { elem: labelType, num: 1 },
                     { elem: Texts, num: 1 },
