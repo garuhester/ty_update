@@ -4,7 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <title>WewinPrintService</title>
-    <link rel="stylesheet" href="./labelimage/static/WewinView.css">
 </head>
 
 <body>
@@ -17,7 +16,9 @@
             var data = window.dialogArguments;
             if (!data) {
                 data = window.location.search;
-                data = data.substring(1);
+                data = data.replace("?data=", "");
+                data = unescape(data);
+                data = JSON.parse(data);
             }
             data[1].modal = false;
             data[1].noView = undefined;

@@ -1,24 +1,18 @@
 //初始化WewinPrintService API
-var wps = WewinPrintService();
+var wps = typeof require !== 'undefined' ? require("./labelimage/static/WewinPrintService")() : WewinPrintService();
 
 //test.html页面传递json
 function LabelPrint(data, obj, modalDialog) {
     wps.StartPrint(obj, function (noView, modal) {
         if (modal) {
-            if (wps.isIE()) {
-                //打开模态框
-                wps.OpenModalDialog({
-                    data: data,
-                    obj: obj,
-                    path: './PS_LabelPrint.html',
-                    height: 660,
-                    width: 1000
-                });
-            } else {
-                //有预览打印
-                wps.LabelPrint(data);
-                Load();
-            }
+            //打开模态框
+            wps.OpenModalDialog({
+                data: data,
+                obj: obj,
+                path: './PS_LabelPrint.html',
+                height: window.screen.height - 200,
+                width: 1000
+            });
         } else {
             if (noView != undefined) {
                 //无预览打印
@@ -506,4 +500,11 @@ function print_tag123(lablesArr, Texts, Codes) {
     lablesArr.push(obj);
 
     return lablesArr;
+}
+
+if (typeof exports === 'object' && typeof module !== 'undefined') {
+    module.exports = {
+        wps: wps,
+        LabelPrint: LabelPrint
+    }
 }
