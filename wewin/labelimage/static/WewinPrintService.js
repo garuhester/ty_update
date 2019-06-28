@@ -5,8 +5,11 @@
  */
 
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() : global.WewinPrintService = factory()
-}(this, function () {
+    if (typeof exports === 'object' && typeof module !== 'undefined') {
+        module.exports = factory();
+    }
+    global.WewinPrintService = factory();
+}(window, function () {
 
     var WewinPrintService = function () {
 
@@ -34,6 +37,7 @@
                 this.printNum = -1;//每张打印份数参数
                 this.minPrintNum = 1;//每张打印份数最小值
                 this.maxPrintNum = 99;//每张打印份数最大值
+                this.imgPath = "labelimage";
 
                 this.noViewTip = "没有找到对应打印机";//无预览监测打印机型号提示
                 this.noServiceTip = "请安装插件或启动服务";//监测插件情况提示
@@ -270,17 +274,11 @@
             css += "    font-size: 14px;";
             css += "    width: 750px;";
             css += "    overflow: hidden;";
-            css += "    padding-top: 7px;";
-            css += "    padding-bottom: 7px;";
-            css += "    position: absolute;";
-            css += "    left: 50%;";
-            css += "    -webkit-transform: translate(-50%, 0);";
-            css += "    transform: translate(-50%, 0);";
-            css += "    bottom: 0px;";
-            css += "    z-index: 1300;";
-            css += "    \/* animation: into 0.2s forwards; *\/";
+            css += "    margin-top: 10px;";
+            css += "    padding-top: 5px;";
+            css += "    padding-bottom: 5px;";
             css += "    background: #eee;";
-            css += "    border-radius: 0 0 10px 10px;";
+            css += "    border-bottom: 1px solid #ddd;";
             css += "    border-top: 1px solid #ddd;";
             css += "}";
             css += ".wewindown a:hover {";
@@ -338,9 +336,9 @@
             css += "\/* IE兼容 678 *\/";
             css += "@media \\0screen\\,screen\\9 {";
             css += "    .wewinmain {";
-            css += "        height: 500px;";
+            css += "        height: 600px;";
             css += "        margin-left: -375px;";
-            css += "        margin-top: -250px;";
+            css += "        margin-top: -300px;";
             css += "        overflow-y: auto;";
             css += "        border: 1px solid #000;";
             css += "    }";
@@ -463,10 +461,10 @@
             html += "            <button style=\"color: #fff;border: none;padding: 5px 15px 5px 15px;border-radius: 50px;margin-left: 5px;margin-right: 5px;cursor: pointer;outline: none;font-size: 16px;\" class=\"wewinbtn\" type=\"button\" name=\"print\" onclick=\"Print()\">";
             html += "                打印";
             html += "            <\/button>";
-            html += "            <button style=\"color: #fff;border: none;padding: 5px 15px 5px 15px;border-radius: 50px;margin-left: 5px;margin-right: 5px;cursor: pointer;outline: none;font-size: 16px;\" class=\"wewinbtn\" type=\"button\" name=\"print\" onclick=\"lookXml()\">";
+            html += "            <button style=\"color: #fff;border: none;padding: 5px 15px 5px 15px;border-radius: 50px;margin-left: 5px;margin-right: 5px;cursor: pointer;outline: none;font-size: 16px;\" class=\"wewinbtn\" type=\"button\" name=\"print\" onclick=\"wps.lookXml()\">";
             html += "                查看报文";
             html += "            <\/button>";
-            html += "            <button style=\"color: #fff;border: none;padding: 5px 15px 5px 15px;border-radius: 50px;margin-left: 5px;margin-right: 5px;cursor: pointer;outline: none;font-size: 16px;\" class=\"wewinbtn\" type=\"button\" name=\"print\" onclick=\"lookHelp()\">";
+            html += "            <button style=\"color: #fff;border: none;padding: 5px 15px 5px 15px;border-radius: 50px;margin-left: 5px;margin-right: 5px;cursor: pointer;outline: none;font-size: 16px;\" class=\"wewinbtn\" type=\"button\" name=\"print\" onclick=\"wps.lookHelp()\">";
             html += "                帮助";
             html += "            <\/button>";
             if (!this.modal) {
@@ -480,21 +478,21 @@
                 html += "           <span style='color: #FF3B30;font-weight:bold;'>每张打印份数：<\/span><input id='printNum' type='number' max='" + this.maxPrintNum + "' min='" + this.minPrintNum + "' style='ime-mode:disabled;width:55px;border-radius: 5px;outline: none;font-size: 14px;padding: 2px;padding-left:5px;box-sizing: border-box;margin-top:7px;' onKeyPress=\"if(event.keyCode < 48 || event.keyCode > 57) event.returnValue = false;\" onKeyUp=\"this.value=this.value.replace(/\\D/g,'')\" /> (" + this.minPrintNum + "-" + this.maxPrintNum + ") 份";
                 html += "        <\/div>";
             }
-            html += "        <div class=\"wewinsplit2\"><\/div>";
-            if (this.printNum != -1) {
-                html += "        <div class=\"tags\" style='height: calc(100% - 255px);'>";
-            } else {
-                html += "        <div class=\"tags\" style='height: calc(100% - 245px);'>";
-            }
-            html += "            <div style=\"margin-bottom: 50px;text-align:center;position: relative;\" id=\"preview\"><\/div>";
-            html += "        <\/div>";
             html += "        <div class=\"wewindown\">";
             html += "            <div style=\"float: left;padding-left: 20px;\" class=\"left version\">版本号：";
             html += "                <span id=\"versionnum\"><\/span>";
             html += "            <\/div>";
             html += "            <div style=\"float: right;padding-right: 20px;\" class=\"right\">";
-            html += "                <a style=\"color: #000;font-size: 14px;text-decoration: none;\" href=\".\/plug(pop)_V1.0.7.zip\" target=\"_blank\">wewin打印服务插件下载<\/a>";
+            html += "                <a style=\"color: red;font-size: 14px;text-decoration: none;\" href=\".\/plug(pop)_V1.0.7.zip\" target=\"_blank\">wewin打印服务插件下载<\/a>";
             html += "            <\/div>";
+            html += "        <\/div>";
+            // html += "        <div class=\"wewinsplit2\"><\/div>";
+            if (this.printNum != -1) {
+                html += "        <div class=\"tags\" style='height: calc(100% - 285px);'>";
+            } else {
+                html += "        <div class=\"tags\" style='height: calc(100% - 255px);'>";
+            }
+            html += "            <div style=\"margin-bottom: 50px;text-align:center;position: relative;\" id=\"preview\"><\/div>";
             html += "        <\/div>";
             if (!this.modal) {
                 html += "        <div class=\"cha\" onclick=\"$('.wewinview').remove();$('.wewinview2').remove();\">&#10006<\/div>";
@@ -686,7 +684,7 @@
             text += "————————重庆品胜科技有限公司————————\n";
             text += "帮助：\n";
             text += "* H50plus\/P1200\/268系列打印机需安装驱动；\n";
-            text += "* 请在页面底部下载最新的wewin打印服务插件；\n";
+            text += "* 请在页面下载最新的wewin打印服务插件；\n";
             text += "* 服务热线：4000238080";
             alert(text);
         }
@@ -820,7 +818,7 @@
          * 打印函数
          * @param {Function} doLabelPrintFunc 
          */
-        WewinPrintService.prototype.DoLabelPrint = function (doLabelPrintFunc) {
+        WewinPrintService.prototype.DoLabelPrint = function (doLabelPrintFunc, func) {
             if (this.noview != "1") {
                 var supportPrinter = document.getElementById("printtype").innerHTML;
                 var supportPrinterArr = supportPrinter.split(" ");
@@ -836,10 +834,17 @@
                 }
                 if (temp) {
                     alert("不支持该打印机型号");
+                    if (func != null && func != undefined) {
+                        func("不支持该打印机型号");
+                    }
                     return;
                 }
             }
-            doLabelPrintFunc(this.data);
+            doLabelPrintFunc(this.data, function (jsonData) {
+                if (func != null && func != undefined) {
+                    func(jsonData);
+                }
+            });
         }
 
         /**
@@ -955,7 +960,7 @@
          * @param {Object} rawData 打印数据
          * @returns {String} 对象转字符串的打印数据
          */
-        WewinPrintService.prototype.Print = function (rawData) {
+        WewinPrintService.prototype.Print = function (rawData, func) {
             if (this.printername != -1) {
                 var parr = this.printername.split("&&");
                 var pname = parr[0];
@@ -966,6 +971,9 @@
                 rawData = this.MulPrint(rawData);
                 if (rawData == false) {
                     alert(this.printNumTip);
+                    if (func != null && func != undefined) {
+                        func(this.printNumTip);
+                    }
                     return;
                 }
                 var sendData = "";
@@ -979,6 +987,10 @@
                 var _this = this;
                 this.Ajax('post', url, sendData, function (data) {
                     console.log('非jsonp-打印-success：' + data);
+                    if (func != null && func != undefined) {
+                        var jsonData = JSON.parse(data);
+                        func(jsonData);
+                    }
                 }, function (error) {
                     console.log('非jsonp-打印-error：' + error);
                     $.ajax({
@@ -989,9 +1001,16 @@
                         jsonpCallback: "wwprint",
                         success: function (data) {
                             console.log('jsonp-打印-success' + data);
+                            if (func != null && func != undefined) {
+                                var jsonData = JSON.parse(data);
+                                func(jsonData);
+                            }
                         },
                         error: function (error) {
                             console.log("jsonp-打印-error：", error);
+                            if (func != null && func != undefined) {
+                                func(error);
+                            }
                         }
                     });
                 });
@@ -1213,6 +1232,12 @@
                 } else {
                     this.printNum = obj.printNum;
                 }
+            }
+            //imgPath
+            if (obj.imgPath != undefined && obj.imgPath.trim() != "") {
+                this.imgPath = obj.imgPath;
+            } else {
+                this.imgPath = "labelimage";
             }
             callback(obj.noView, obj.modal);
         }

@@ -1,6 +1,10 @@
 //初始化WewinPrintService API
 var wps = typeof require !== 'undefined' ? require("./labelimage/static/WewinPrintService")() : WewinPrintService();
 
+window.wps = wps;
+window.LabelPrint = LabelPrint;
+window.Print = Print;
+
 //test.html页面传递json
 function LabelPrint(data, obj, modalDialog) {
     wps.StartPrint(obj, function (noView, modal) {
@@ -42,24 +46,20 @@ function changetype() {
 //在预览中点击打印按钮时打印标签
 function Print() {
     wps.GetPrinter();
-    wps.DoLabelPrint(DoLabelPrint);
+    wps.DoLabelPrint(DoLabelPrint, function (jsonData) {
+        //打印回调
+        console.log("打印回调", jsonData);
+    });
 }
 
 //直接点击打印按钮时打印标签
 function NoViewLabelPrint(data, printer) {
     wps.SetPrinter(data, printer, function () {
-        wps.DoLabelPrint(DoLabelPrint);
+        wps.DoLabelPrint(DoLabelPrint, function (jsonData) {
+            //打印回调
+            console.log("打印回调", jsonData);
+        });
     });
-}
-
-//查看报文
-function lookXml() {
-    wps.lookXml();
-}
-
-//查看帮助
-function lookHelp() {
-    wps.lookHelp();
 }
 
 //解析XML
@@ -162,9 +162,9 @@ function ViewPrint(data, temp) {
                 }
 
                 if (i == 0) {
-                    text += "<div style=\"position: relative;font-family:'" + wps.fontname + "';background-image:url(\'labelimage\/(25-25)(0).png\');background-repeat:no-repeat;width: 200px;height: 200px;display:block;margin:0 auto;padding:0;\">";
+                    text += "<div style=\"position: relative;font-family:'" + wps.fontname + "';background-image:url(\'" + wps.imgPath + "\/(25-25)(0).png\');background-repeat:no-repeat;width: 200px;height: 200px;display:block;margin:0 auto;padding:0;\">";
                 } else {
-                    text += "<div style=\"position: relative;font-family:'" + wps.fontname + "';background-image:url(\'labelimage\/(25-25)(0).png\');background-repeat:no-repeat;width: 200px;height: 200px;display:block;margin:0 auto;padding:0;margin-top: 15px\">";
+                    text += "<div style=\"position: relative;font-family:'" + wps.fontname + "';background-image:url(\'" + wps.imgPath + "\/(25-25)(0).png\');background-repeat:no-repeat;width: 200px;height: 200px;display:block;margin:0 auto;padding:0;margin-top: 15px\">";
                 }
 
                 if (data.length > 1) {
@@ -287,7 +287,7 @@ function ViewPrint(data, temp) {
 }
 
 //修改-标签打印
-function DoLabelPrint(data) {
+function DoLabelPrint(data, func) {
     var lablesArr = [];
 
     var xmldoc, PrintElements;
@@ -344,7 +344,9 @@ function DoLabelPrint(data) {
         "labels": lablesArr
     }
 
-    wps.Print(data);
+    wps.Print(data, function (jsonData) {
+        func(jsonData);
+    });
 
 }
 
@@ -426,7 +428,7 @@ function print_tag123(lablesArr, Texts, Codes) {
 
         //---------------------------------------
         var path = window.location.href.split('?')[0];
-        path = path.substring(0, path.lastIndexOf('/')) + '/labelimage/CM1.bmp';//图片路径(绝对路径)
+        path = path.substring(0, path.lastIndexOf('/')) + '/' + wps.imgPath + '/CM1.bmp';//图片路径(绝对路径)
         var x = 50.053639846743295;
         var y = 19.000000000000057;
         var rotate = 1;
@@ -500,11 +502,4 @@ function print_tag123(lablesArr, Texts, Codes) {
     lablesArr.push(obj);
 
     return lablesArr;
-}
-
-if (typeof exports === 'object' && typeof module !== 'undefined') {
-    module.exports = {
-        wps: wps,
-        LabelPrint: LabelPrint
-    }
 }
