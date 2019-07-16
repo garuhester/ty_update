@@ -45,10 +45,11 @@ function changetype() {
 
 //在预览中点击打印按钮时打印标签
 function Print() {
-    wps.GetPrinter();
-    wps.DoLabelPrint(DoLabelPrint, function (jsonData) {
-        //打印回调
-        console.log("打印回调", jsonData);
+    wps.GetPrinter(function () {
+        wps.DoLabelPrint(DoLabelPrint, function (jsonData) {
+            //打印回调
+            console.log("打印回调", jsonData);
+        });
     });
 }
 

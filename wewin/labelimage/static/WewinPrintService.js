@@ -692,11 +692,12 @@
         /**
          * 设置选中的打印机
          */
-        WewinPrintService.prototype.GetPrinter = function () {
+        WewinPrintService.prototype.GetPrinter = function (func) {
             this.printername = document.getElementById("printername").value;
             if (this.printername == "-1") {
                 alert("当前无WEWIN打印机，请接入");
-                return;
+            } else {
+                func();
             }
         }
 
@@ -766,12 +767,7 @@
                 console.log('非jsonp-查询-success：' + data);
                 var jsonData = JSON.parse(data);
                 var printers = jsonData.content;
-                for (var i = 0; i < printers.length; i++) {
-                    if (printers[i].printer.toLowerCase().indexOf(printer.toLowerCase()) != -1) {
-                        _this.printername = printers[i].printer + "&&" + printers[i].dots + "&&" + printers[i].hasDrive;
-                        break;
-                    }
-                }
+                _this.GetRightPrinter(printer, printers);
                 if (_this.printername != "") {
                     func();
                 } else {
@@ -793,12 +789,7 @@
                         console.log("jsonp-查询-success：", JSON.stringify(data));
                         var jsonData = data;
                         var printers = jsonData.content;
-                        for (var i = 0; i < printers.length; i++) {
-                            if (printers[i].printer.toLowerCase().indexOf(printer.toLowerCase()) != -1) {
-                                _this.printername = printer + "&&" + printers[i].dots + "&&" + printers[i].hasDrive;
-                                break;
-                            }
-                        }
+                        _this.GetRightPrinter(printer, printers);
                         if (_this.printername != "") {
                             func();
                         } else {
@@ -812,6 +803,28 @@
                 });
 
             });
+        }
+
+        /**
+         * 获取无预览传入的打印机(先完整匹配，后模糊匹配)
+         */
+        WewinPrintService.prototype.GetRightPrinter = function (printer, printers) {
+            var temp = true;
+            for (var i = 0; i < printers.length; i++) {
+                if (printers[i].printer.toLowerCase() == printer.toLowerCase()) {
+                    this.printername = printers[i].printer + "&&" + printers[i].dots + "&&" + printers[i].hasDrive;
+                    temp = false;
+                    break;
+                }
+            }
+            if (temp) {
+                for (var i = 0; i < printers.length; i++) {
+                    if (printers[i].printer.toLowerCase().indexOf(printer.toLowerCase()) != -1) {
+                        this.printername = printers[i].printer + "&&" + printers[i].dots + "&&" + printers[i].hasDrive;
+                        break;
+                    }
+                }
+            }
         }
 
         /**
