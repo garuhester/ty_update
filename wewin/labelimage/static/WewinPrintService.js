@@ -544,6 +544,7 @@
             }
             var sendData = "";
             sendData = this.resolveData(rawData);
+            sendData = encodeURI(sendData);
             var url = this.getTrueUrl();
 
             var _this = this;
@@ -760,6 +761,7 @@
             }
             var sendData = "";
             sendData = this.resolveData(rawData);
+            sendData = encodeURI(sendData);
             var url = this.getTrueUrl();
 
             var _this = this;
@@ -995,7 +997,8 @@
                 console.log("打印前的数据(string)：", sendData);
                 var url = this.getTrueUrl();
 
-                sendData = sendData.replace(/#/g, encodeURIComponent("#"));
+                // sendData = sendData.replace(/#/g, encodeURIComponent("#"));
+                sendData = encodeURI(sendData);
 
                 var _this = this;
                 this.Ajax('post', url, sendData, function (data) {
@@ -1200,15 +1203,40 @@
             var protocol = window.location.protocol.replace(":", "");
             var webType = this.isIE();
 
-            if (webType) {
-                if (protocol == "https") {
-                    url = "https://127.0.0.1:18189";
-                }
+            // if (webType) {
+            if (protocol == "https") {
+                url = "https://127.0.0.1:18189";
             }
+            if (this.getOs() == "Firefox") {
+                url = "http://127.0.0.1:18188";
+            }
+            // }
 
             console.log("请求服务地址：" + url);
 
             return url;
+        }
+
+        /**
+         * 判断浏览器
+         */
+        WewinPrintService.prototype.getOs = function () {
+            var OsObject = "";
+            if (navigator.userAgent.indexOf("MSIE") > 0) {
+                return "MSIE";
+            }
+            if (isFirefox = navigator.userAgent.indexOf("Firefox") > 0) {
+                return "Firefox";
+            }
+            if (isSafari = navigator.userAgent.indexOf("Safari") > 0) {
+                return "Safari";
+            }
+            if (isCamino = navigator.userAgent.indexOf("Camino") > 0) {
+                return "Camino";
+            }
+            if (isMozilla = navigator.userAgent.indexOf("Gecko/") > 0) {
+                return "Gecko";
+            }
         }
 
         /**
